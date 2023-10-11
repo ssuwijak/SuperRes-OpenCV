@@ -11,6 +11,6 @@ handler = logging.StreamHandler()
 handler.setFormatter(CustomLogFormatter())
 
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.WARNING,
     handlers=[handler]
 )

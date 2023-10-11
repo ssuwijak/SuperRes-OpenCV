@@ -88,6 +88,31 @@ def isFile(pathname: str) -> bool:
 
 	return flag
 
+def pathSplit(pathName: str):
+	logger.debug(f"calling pathSplit('{pathName}')")
+
+	parent_path, filename, name, extension = "","","",""
+	s = trim(pathName)
+
+	if isEmptyStr(s):
+		logger.error(f"pathName='{pathName}' was empty and invalid path.")	
+		return parent_path, filename, name, extension
+
+	try:
+		#parent_path, filename = pathName.rsplit("/", 1)
+		#name, extension = filename.rsplit(".", 1)
+
+		filename = os.path.basename(pathName)
+		name, extension = os.path.splitext(filename)
+		parent_path = os.path.dirname(pathName)
+
+		logger.info(f"parent_path='{parent_path}' , filename='{filename}' , name='{name}' , ext='{extension}'")
+	except Exception as ex:
+		logger.critical(f"unable to split the path '{pathName}', {ex}")
+	
+	return parent_path, filename, name, extension
+
+
 def delDir(dirname):
 	logger.debug(f"calling delDir('{dirname}')")
 	flag = False
@@ -184,3 +209,4 @@ def dirList(dirname):
 	logger.info(f"dirList('dirname') = {dirs}")
 	
 	return dirs
+

@@ -19,6 +19,8 @@ Super Resolution by OpenCV
     * modify the upscale.py and main() function as you needed
     * run by the command, `python upscale.py`
 
+## Google Colab Demo
+[here](https://colab.research.google.com/drive/1z0Tmjwca5TbqwVsTgwNljftfMIcawqHD?hl=th)
 
 ## Models
 There are currently 4 different SR models supported in the module. They can all upscale images by a scale of 2, 3 and 4. LapSRN can even upscale by a factor of 8. They differ in accuracy, size and speed.

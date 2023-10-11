@@ -12,6 +12,7 @@ logging.basicConfig(level=logging.DEBUG,
 
 logger = logging.getLogger(__name__)
 
+
 def upscale():
 	# Create an SR object
 	sr = dnn_superres.DnnSuperResImpl_create()
@@ -33,37 +34,40 @@ def upscale():
 	cv2.imwrite("./upscaled.png", result)
 
 
-def upscale2(input: str, output: str = 'output', model_name: str = 'FSRCNN', scale_x: int = 4, has_cuda: bool = False):
+def upscale2(input: str, output: str = 'upscaled_img', model_name: str = 'FSRCNN', scale_x: int = 4, has_cuda: bool = False):
 	logger.debug(f"calling upscale2('{input}', '{output}', '{model_name}', {scale_x}, {has_cuda})")
-	list_scales = [2,3,4,8]
-	list_models = ['EDSR','ESPCN','FSRCNN','LapSRN']
-	model_path = ''
+
+	list_scales = [2, 3, 4, 8]
+	list_models = ['EDSR', 'ESPCN', 'FSRCNN', 'LapSRN']
+	model_path = ""
+
+	print(f"\tupscale image(s) [DIR]='{input}' --> [DIR]='{output}'\n")
 
 	if not isDir(input):
-		logger.error(f"unable to find the '{input}' folder for input images.")
+		logger.error(f"unable to find [DIR]='{input}' for input images.")
 		return
 
 	if not createDir(output, False):
-		logger.error(f"unable to create the '{output}' folder for scaling output.")
+		logger.error(f"unable to create [DIR]='{output}' for upscaled results.")
 		return
 
 	if scale_x not in list_scales:
-		logger.warning(f"scale_x = {scale_x} was out of range, it was set to 4 (default).")
+		logger.warning(f"scale_x = {scale_x} was out of range, it was set to be 4 (default).")
 		scale_x = 4
 
 	if model_name in list_models:
 		model_path = os.path.join('models', model_name, model_name + '_x' + str(scale_x) + '.pb')
 
-	if model_path == '':
+	if isEmptyStr(model_path):
 		logger.error(f"'{model_name}' was unknown, it was out of range {list_models})")
 		return
 	elif not isFile(model_path):
 		logger.error(f"'{model_path}' not found, please download it first.")
 		return
 	else:
-		print(f"'{model_path}' was found.")
+		print(f"\tmodel='{model_path}' was found.")
 
-	#return
+	# return
 
 	logger.debug(f"create an sr object.")
 	sr = dnn_superres.DnnSuperResImpl_create()
@@ -71,7 +75,7 @@ def upscale2(input: str, output: str = 'output', model_name: str = 'FSRCNN', sca
 	logger.debug(f"read the model at '{model_path}'")
 	sr.readModel(model_path)
 
-	logger.debug(f"set the desired model= '{model_name.lower()}'and scale= {scale_x} to get correct pre- and post-processing")
+	logger.debug(f"set the desired model='{model_name.lower()}'and scale={scale_x} to get correct pre- and post-processing")
 	sr.setModel(model_name.lower(), scale_x)
 
 	# if you have cuda support, select cuda options for both
@@ -89,37 +93,44 @@ def upscale2(input: str, output: str = 'output', model_name: str = 'FSRCNN', sca
 		sr.setPreferableBackend(cv2.dnn.DNN_BACKEND_DEFAULT)
 		sr.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
 
-	suffix = f"{model_name.lower()}{scale_x}x"
+	suffix = f"{model_name.lower()}_x{scale_x}"
 	file_count = 0
-
+	# filenames = ["parent_path", "filename", "name", ".ext"]
+	exts = (".jpg", ".png", ".jpeg", ".gif", ".bmp", )
+	
 	for img_name in fileList(input):
 		file_count += 1
-		# print(os.path.join(input, img_name))
-		print(f"{file_count}) upscaling '{img_name}' ... ", end="")
+		filenames = pathSplit(img_name)
 
-		try:
-			img = cv2.imread(os.path.join(input, img_name))
-			result = sr.upsample(img)
+		print(f"{file_count}) upscaling [FILE]='{img_name}' ... ", end="")
 
-			saved_to = os.path.join(output, os.path.splitext(img_name)[0] + '_' + suffix + '.png')
+		if filenames[3] in exts:
+			try:
+				img = cv2.imread(os.path.join(input, img_name))
+				result = sr.upsample(img)
 
-			if pathExists(saved_to):
-				delFile(saved_to)
+				saved_to = os.path.join(
+					output, filenames[2] + '_' + suffix + filenames[3])
 
-			cv2.imwrite(saved_to, result)
+				if pathExists(saved_to):
+					delFile(saved_to)
 
-			print(f"saved as '{saved_to}'")
-		except Exception as ex:
-			print(f"error, {ex}")
-			logger.critical(f"{ex}")
+				cv2.imwrite(saved_to, result)
 
+				print(f"saved as '{saved_to}'")
+			except Exception as ex:
+				print(f"error, {ex}")
+				logger.critical(f"{ex}")
+		else:
+			print(f"skip, '{filenames[1]}' is not image file.")
+			file_count -= 1
 
-	print(f"done, totally {file_count} file(s) were upscaled.")
+	print(f"\n\tdone, {file_count} file(s) were upscaled totally.")
 
 
 def main():
-	upscale2('input', 'output', 'LapSRN', 4, False)
+	upscale2('upload_img', 'upscaled_img', 'LapSRN', 4, False)
 
 
 if __name__ == "__main__":
-		main()
+	main()
