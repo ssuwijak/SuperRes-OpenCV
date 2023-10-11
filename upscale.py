@@ -33,7 +33,8 @@ def upscale():
 	cv2.imwrite("./upscaled.png", result)
 
 
-def upscale2(input: str, output: str = 'output', model_name: str = 'LapSRN', scale_x: int = 4, has_cuda: bool = False):
+def upscale2(input: str, output: str = 'output', model_name: str = 'FSRCNN', scale_x: int = 4, has_cuda: bool = False):
+	logger.debug(f"calling upscale2('{input}', '{output}', '{model_name}', {scale_x}, {has_cuda})")
 	list_scales = [2,3,4,8]
 	list_models = ['EDSR','ESPCN','FSRCNN','LapSRN']
 	model_path = ''
@@ -64,16 +65,28 @@ def upscale2(input: str, output: str = 'output', model_name: str = 'LapSRN', sca
 
 	#return
 
+	logger.debug(f"create an sr object.")
 	sr = dnn_superres.DnnSuperResImpl_create()
+
+	logger.debug(f"read the model at '{model_path}'")
 	sr.readModel(model_path)
+
+	logger.debug(f"set the desired model= '{model_name.lower()}'and scale= {scale_x} to get correct pre- and post-processing")
 	sr.setModel(model_name.lower(), scale_x)
 
 	# if you have cuda support, select cuda options for both
 	if has_cuda:
-		sr.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
-		sr.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
+		try:
+			logger.debug(f"set for processing by CUDA (GPU)")
+			sr.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
+			sr.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
+		except Exception as ex:
+			logger.error(f"unable to process by GPU, it was re-set to CPU instead, {ex}")
+			sr.setPreferableBackend(cv2.dnn.DNN_BACKEND_DEFAULT)
+			sr.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
 	else:
-		sr.setPreferableBackend(cv2.dnn.DNN_BACKEND_CPU)
+		logger.debug(f"set for processing by normal CPU")
+		sr.setPreferableBackend(cv2.dnn.DNN_BACKEND_DEFAULT)
 		sr.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
 
 	suffix = f"{model_name.lower()}{scale_x}x"
@@ -90,18 +103,22 @@ def upscale2(input: str, output: str = 'output', model_name: str = 'LapSRN', sca
 
 			saved_to = os.path.join(output, os.path.splitext(img_name)[0] + '_' + suffix + '.png')
 
+			if pathExists(saved_to):
+				delFile(saved_to)
+
 			cv2.imwrite(saved_to, result)
 
 			print(f"saved as '{saved_to}'")
 		except Exception as ex:
 			print(f"error, {ex}")
+			logger.critical(f"{ex}")
 
 
 	print(f"done, totally {file_count} file(s) were upscaled.")
 
 
 def main():
-	upscale2('input', 'output', 'LapSRN', 6, True)
+	upscale2('input', 'output', 'LapSRN', 4, False)
 
 
 if __name__ == "__main__":

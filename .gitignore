@@ -128,11 +128,16 @@ ENV/
 env.bak/
 venv.bak/
 
-# venv
+# my custom ignore
 Include/
 Lib/
 Scripts/
 pyvenv.cfg
+.vscode/
+*.png
+*.jpg
+*.gif
+*.jpeg
 
 # Spyder project settings
 .spyderproject

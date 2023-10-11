@@ -26,7 +26,8 @@ def isEmptyStr(value) -> bool:
 	logger.debug(f"calling isEmptyStr('{value}')")
 
 	if value is None:
-		logger.info(f"isEmptyStr('{value}') = None")
+		logger.warning(f"'{value}' is None")
+		logger.info(f"isEmptyStr('{value}') = {True}")
 		return True
 	
 	s = trim(value)
@@ -40,7 +41,8 @@ def pathExists(pathName: str) -> bool:
 	flag = False
 
 	if isEmptyStr(pathName):
-		logger.warning(f"'{pathName}' is empty string.")
+		logger.warning(f"'{pathName}' is empty string and invalid path.")
+		logger.info(f"'{pathName}' (empty string) not exists") 
 		return flag
 	
 	try:
@@ -163,7 +165,7 @@ def fileList(dirname):
 
 	files = os.listdir(dirname)
 	files = [f for f in files if os.path.isfile(dirname + '/' + f)] #Filtering only the files.
-	logger.debug(*files, sep="\n")
+	# logger.debug(*files, sep="\n")
 
 	logger.info(f"fileList('dirname') = {files}")
 
@@ -177,7 +179,7 @@ def dirList(dirname):
 
 	dirs = os.listdir(dirname)
 	dirs = [d for d in dirs if os.path.isdir(dirname + '/' + d)] #Filtering only the files.
-	logger.debug(*dirs, sep="\n")
+	# logger.debug(*dirs, sep="\n")
 	
 	logger.info(f"dirList('dirname') = {dirs}")
 	
